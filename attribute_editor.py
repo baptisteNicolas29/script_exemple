@@ -157,13 +157,13 @@ class NumeriqueValueAttr(QtWidgets.QWidget):
         self.hasMax= QtWidgets.QCheckBox('has maximum')
         self.hasDefault= QtWidgets.QCheckBox('has Default')
         
-        self.min_value= QtWidgets.QSpinBox()
+        self.min_value= QtWidgets.QDoubleSpinBox()
         self.min_value.setEnabled(False)
         
-        self.max_value= QtWidgets.QSpinBox()
+        self.max_value= QtWidgets.QDoubleSpinBox()
         self.max_value.setEnabled(False)
         
-        self.default_value= QtWidgets.QSpinBox()
+        self.default_value= QtWidgets.QDoubleSpinBox()
         self.default_value.setEnabled(False)
         
     def create_layouts(self):
