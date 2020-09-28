@@ -45,17 +45,7 @@ class RDataBase(QtWidgets.QDialog):
     def create_widgets(self):
         
         self.LongName_entry= QtWidgets.QLineEdit()
-        
-        self.shortName_entry= QtWidgets.QLineEdit()
-        self.shortName_entry.setEnabled(False)
-        
-        self.niceName_entry= QtWidgets.QLineEdit()
-        self.niceName_entry.setEnabled(False)
-
-
         self.LongName_label= QtWidgets.QLabel('long name: ')
-        self.shortName_enable= QtWidgets.QCheckBox('add short name: ')
-        self.NiceName_enable= QtWidgets.QCheckBox('add nice name: ')
                 
         self.tabs= QtWidgets.QTabWidget()
         self.tabs.addTab(NumeriqueValueAttr(), 'numerique value')
@@ -78,20 +68,13 @@ class RDataBase(QtWidgets.QDialog):
         #nameLayout
         self.nameLayout.addWidget(self.LongName_label, 0, 0, 1, 1)
         self.nameLayout.addWidget(self.LongName_entry, 0, 1, 1, 1)
-        
-        self.nameLayout.addWidget(self.shortName_enable, 1, 0, 1, 1)
-        self.nameLayout.addWidget(self.shortName_entry, 1, 1, 1, 1)
-        
-        self.nameLayout.addWidget(self.NiceName_enable, 2, 0, 1, 1)
-        self.nameLayout.addWidget(self.niceName_entry, 2, 1, 1, 1)        
-        
+                
         self.setLayout(self.rootLayout)
 
     def create_connections(self):
         
-        self.shortName_enable.stateChanged.connect(self.enable_shortName_entry)
-        self.NiceName_enable.stateChanged.connect(self.enable_niceName_entry)
-    
+        self.add_button.clicked.connect(self.sendAttr)
+        
     def enable_niceName_entry(self, value):
         
         if value == 2:
@@ -112,7 +95,14 @@ class RDataBase(QtWidgets.QDialog):
             
             self.shortName_entry.setEnabled(False)
 
-
+    def sendAttr(self):
+        
+        new_ln= self.LongName_entry.text()
+        
+        if len(new_ln) != 0:
+            
+            self.tabs.currentWidget().buildAttr(cmds.ls(sl= True), ln= new_ln)
+        
             
     def showEvent(self, e):
         super(RDataBase, self).showEvent(e)
@@ -151,7 +141,7 @@ class NumeriqueValueAttr(QtWidgets.QWidget):
         self.hidden_RButton= QtWidgets.QRadioButton('hidden')
         
         self.attribute_chooser_combobox= QtWidgets.QComboBox()
-        self.attribute_chooser_combobox.addItems(['long', 'short', 'byte', 'float', 'double', 'doubleAngle', 'doubleLinear', 'bool'])
+        self.attribute_chooser_combobox.addItems(['double', 'doubleAngle', 'doubleLinear', 'bool', 'message'])
         
         self.hasMin= QtWidgets.QCheckBox('has minimum')
         self.hasMax= QtWidgets.QCheckBox('has maximum')
@@ -201,6 +191,9 @@ class NumeriqueValueAttr(QtWidgets.QWidget):
         self.hasMax.stateChanged.connect(self.max_value.setEnabled)
         self.hasDefault.stateChanged.connect(self.default_value.setEnabled)
 
+    def buildAttr(self, listAdd, ln):
+        
+        pass
 
 class ShapeAttr(QtWidgets.QWidget):
 
@@ -234,7 +227,23 @@ class ShapeAttr(QtWidgets.QWidget):
     def create_connections(self):
         
         pass
+        
+    def buildAttr(self, listAdd, ln):
+        
+        for node in listAdd:
+                
+            if not cmds.attributeQuery(ln, n= node, ex= True):
+                
+                cmds.addAttr(ln= ln, dt= self.attribute_chooser_combobox.currentText(), multi= self.isMulti_checkbox.isChecked())
+            
+            if sn:
+                
+                cmds.addAttr('{0}.{1}'.format(node, ln), e= True, sn= sn)
 
+            if nn:
+                
+                cmds.addAttr('{0}.{1}'.format(node, ln), e= True, nn= nn)                
+                
 class VectorAttr(QtWidgets.QWidget):
 
     def __init__(self, parent= None):
@@ -275,10 +284,8 @@ class VectorAttr(QtWidgets.QWidget):
         self.vectorND_choose.setEnabled(False)
 
         #vectorType gb
-        self.double_RButton= QtWidgets.QRadioButton('double')
-        self.double_RButton.setChecked(True)
-        
-        self.doubleAngle_RButton= QtWidgets.QRadioButton('doubleAngle')
+        self.doubleType= QtWidgets.QComboBox()
+        self.doubleType.addItems(['double', 'doubleAngle'])
 
     def create_layouts(self):
         
@@ -306,8 +313,7 @@ class VectorAttr(QtWidgets.QWidget):
         self.vectorSizeLayout.addWidget(self.vectorND_choose, 1, 1, 1, 1)
         
         #vectorTypeLayout
-        self.vectorTypeLayout.addWidget(self.double_RButton)
-        self.vectorTypeLayout.addWidget(self.doubleAngle_RButton)
+        self.vectorTypeLayout.addWidget(self.doubleType)
         
         #setLayouts
         self.integrationType_gbox.setLayout(self.integrationTypeLayout)
@@ -319,7 +325,47 @@ class VectorAttr(QtWidgets.QWidget):
     
         self.vectorND_RButton.toggled.connect(self.vectorND_choose.setEnabled)
 
+    def buildAttr(self, listAdd, ln):
+        
+        nbr_dimention= self.vectorND_choose.value()
+        double_type= self.doubleType.currentText()
+        is_multi= self.isMulti_checkbox.isChecked()
+        
+        for node in listAdd:
+            
+            if self.vector2D_RButton.isChecked():
+                
+                print 'je passe par vector2'
+                
+                if not cmds.attributeQuery(ln, n= node, ex= True):
+                
+                    cmds.addAttr(node, ln= ln, at= 'double2', multi= is_multi)
+                    cmds.addAttr(node, ln= '{0}X'.format(ln), at= double_type, p= ln)
+                    cmds.addAttr(node, ln= '{0}Y'.format(ln), at= double_type, p= ln)
 
+            if self.vector3D_RButton.isChecked():
+                
+                print 'je passe par vector3'
+                
+                if not cmds.attributeQuery(ln, n= node, ex= True):
+                
+                    cmds.addAttr(node, ln= '{0}'.format(ln), at= 'double3', multi= is_multi)
+                    cmds.addAttr(node, ln= '{0}X'.format(ln), at= double_type, p= ln)
+                    cmds.addAttr(node, ln= '{0}Y'.format(ln), at= double_type, p= ln)
+                    cmds.addAttr(node, ln= '{0}Z'.format(ln), at= double_type, p= ln)
+
+            if self.vectorND_RButton.isChecked():
+                
+                print 'je passe par vectorN'
+                
+                if not cmds.attributeQuery(ln, n= node, ex= True):
+
+                    cmds.addAttr(node, ln= ln, at= 'compound', nc= nbr_dimention, multi= is_multi)
+        
+                    for idx in range(nbr_dimention):
+                    
+                        cmds.addAttr(node, ln= '{0}{1}'.format(ln, idx+1), at= double_type, p= ln)
+        
 if __name__ == "__main__":
     
     try:    
