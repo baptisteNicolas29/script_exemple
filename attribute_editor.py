@@ -48,7 +48,7 @@ class RDataBase(QtWidgets.QDialog):
         self.LongName_label= QtWidgets.QLabel('long name: ')
                 
         self.tabs= QtWidgets.QTabWidget()
-        self.tabs.addTab(NumeriqueValueAttr(), 'numerique value')
+        #self.tabs.addTab(NumeriqueValueAttr(), 'numerique value')
         self.tabs.addTab(ShapeAttr(), 'Shape/dataType')
         self.tabs.addTab(VectorAttr(), 'vector')
         
@@ -234,15 +234,7 @@ class ShapeAttr(QtWidgets.QWidget):
                 
             if not cmds.attributeQuery(ln, n= node, ex= True):
                 
-                cmds.addAttr(ln= ln, dt= self.attribute_chooser_combobox.currentText(), multi= self.isMulti_checkbox.isChecked())
-            
-            if sn:
-                
-                cmds.addAttr('{0}.{1}'.format(node, ln), e= True, sn= sn)
-
-            if nn:
-                
-                cmds.addAttr('{0}.{1}'.format(node, ln), e= True, nn= nn)                
+                cmds.addAttr(ln= ln, dt= self.attribute_chooser_combobox.currentText(), multi= self.isMulti_checkbox.isChecked())                
                 
 class VectorAttr(QtWidgets.QWidget):
 
@@ -267,17 +259,13 @@ class VectorAttr(QtWidgets.QWidget):
         #integrationType_gbox
         self.keyable_RButton= QtWidgets.QRadioButton('keyable')
         self.keyable_RButton.setChecked(True)
-        
         self.displayable_RButton= QtWidgets.QRadioButton('displayable')
-        
         self.hidden_RButton= QtWidgets.QRadioButton('hidden')
         
         #vectorSize gb
         self.vector2D_RButton= QtWidgets.QRadioButton('2D vector')
-        
         self.vector3D_RButton= QtWidgets.QRadioButton('3D vector')
         self.vector3D_RButton.setChecked(True)
-        
         self.vectorND_RButton= QtWidgets.QRadioButton('ND vector')
         
         self.vectorND_choose= QtWidgets.QSpinBox()
@@ -340,8 +328,12 @@ class VectorAttr(QtWidgets.QWidget):
                 if not cmds.attributeQuery(ln, n= node, ex= True):
                 
                     cmds.addAttr(node, ln= ln, at= 'double2', multi= is_multi)
-                    cmds.addAttr(node, ln= '{0}X'.format(ln), at= double_type, p= ln)
-                    cmds.addAttr(node, ln= '{0}Y'.format(ln), at= double_type, p= ln)
+                    cmds.addAttr(node, ln= '{0}X'.format(ln), at= double_type, p= ln, k= self.keyable_RButton.isChecked())
+                    cmds.addAttr(node, ln= '{0}Y'.format(ln), at= double_type, p= ln, k= self.keyable_RButton.isChecked())
+                        
+                    cmds.setAttr('{0}.{1}X'.format(node, ln), e= True, channelBox= self.displayable_RButton.isChecked())
+                    cmds.setAttr('{0}.{1}Y'.format(node, ln), e= True, channelBox= self.displayable_RButton.isChecked())
+
 
             if self.vector3D_RButton.isChecked():
                 
@@ -350,9 +342,13 @@ class VectorAttr(QtWidgets.QWidget):
                 if not cmds.attributeQuery(ln, n= node, ex= True):
                 
                     cmds.addAttr(node, ln= '{0}'.format(ln), at= 'double3', multi= is_multi)
-                    cmds.addAttr(node, ln= '{0}X'.format(ln), at= double_type, p= ln)
-                    cmds.addAttr(node, ln= '{0}Y'.format(ln), at= double_type, p= ln)
-                    cmds.addAttr(node, ln= '{0}Z'.format(ln), at= double_type, p= ln)
+                    cmds.addAttr(node, ln= '{0}X'.format(ln), at= double_type, p= ln, k= self.keyable_RButton.isChecked())
+                    cmds.addAttr(node, ln= '{0}Y'.format(ln), at= double_type, p= ln, k= self.keyable_RButton.isChecked())
+                    cmds.addAttr(node, ln= '{0}Z'.format(ln), at= double_type, p= ln, k= self.keyable_RButton.isChecked())
+                    
+                    cmds.setAttr('{0}.{1}X'.format(node, ln), e= True, channelBox= self.displayable_RButton.isChecked())
+                    cmds.setAttr('{0}.{1}Y'.format(node, ln), e= True, channelBox= self.displayable_RButton.isChecked())
+                    cmds.setAttr('{0}.{1}Z'.format(node, ln), e= True, channelBox= self.displayable_RButton.isChecked())
 
             if self.vectorND_RButton.isChecked():
                 
@@ -364,8 +360,9 @@ class VectorAttr(QtWidgets.QWidget):
         
                     for idx in range(nbr_dimention):
                     
-                        cmds.addAttr(node, ln= '{0}{1}'.format(ln, idx+1), at= double_type, p= ln)
-        
+                        cmds.addAttr(node, ln= '{0}{1}'.format(ln, idx+1), at= double_type, p= ln, k= self.keyable_RButton.isChecked())
+                        #cmds.setAttr(node+ '{0}{1}'.format(ln, idx+1), e= True, channelBox= self.displayable_RButton.isChecked())
+                        
 if __name__ == "__main__":
     
     try:    
